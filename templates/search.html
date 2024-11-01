@@ -33,20 +33,18 @@
                 <option value="diagnosis">Diagnosis</option>
                 <option value="icd_10">ICD-10</option>
                 <option value="type_of_visit">Type of Visit</option>
-                <option value="date">Date</option>  
                 <option value="date">Date</option>
             </select>
 
-            <input type="text" id="filter-input" name="filter_value" placeholder="Enter Name" style="display: inline;" />
+            <input type="text" id="filter-input" name="filter_value" placeholder="Enter Name" style="display: inline;" onkeydown="handleEnter(event)" />
             <select id="visit-type-select" style="display: none;">
                 <option value="">Select Visit Type</option>
                 <option value="New patient">New Patient</option>
                 <option value="Follow up">Follow Up</option>
-
             </select>
 
             <button type="button" class="button" onclick="performSearch()">Search</button>
-            <button type="button" class="reset-button"  onclick="resetFilters()">Reset</button>
+            <button type="button" class="reset-button" onclick="resetFilters()">Reset</button>
         </section>
 
         <!-- Table to display search results -->
@@ -60,11 +58,9 @@
                     <th>ICD-10</th>
                     <th>Type of Visit</th>
                     <th>Date</th>
-                    
                 </tr>
             </thead>
             <tbody id="table-body">
-            
             </tbody>
         </table>
     </main>
@@ -117,7 +113,7 @@
             const filterValue = filterType === "type_of_visit" ? document.getElementById("visit-type-select").value : document.getElementById("filter-input").value;
             const table = document.getElementById("result-table");
             const tableBody = document.getElementById("table-body");
-        
+
             fetch('/search_results', {
                 method: 'POST',
                 headers: {
@@ -130,14 +126,14 @@
                 tableBody.innerHTML = "";
                 if (data.length > 0) {
                     table.style.display = "table";
-                    data.forEach(item => {
+                    data.forEach((item) => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
                             <td>${item.name}</td>
                             <td>${item.surname}</td>
                             <td>${item.dental_number}</td>
-                            <td>${item.diagnosis || "-"}</td>
-                            <td>${item.icd_10 || "-"}</td>
+                            <td>${item.diagnosis || ""}</td>  <!-- ใช้ค่าว่างถ้า diagnosis ไม่มีค่า -->
+                            <td>${item.icd_10 || ""}</td>     <!-- ใช้ค่าว่างถ้า icd_10 ไม่มีค่า -->
                             <td>${item.type_of_visit}</td>
                             <td>${item.date}</td>
                         `;
@@ -145,12 +141,11 @@
                     });
                 } else {
                     table.style.display = "none";
-                    alert("ไม่พบผลลัพธ์.");
+                    alert("No results found.");
                 }
             })
             .catch(error => console.error('Error:', error));
         }
-        
 
         function resetFilters() {
             // Reset filter type to default
@@ -163,6 +158,11 @@
             document.getElementById("visit-type-select").value = ""; // Reset visit type select
         }
         
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                performSearch();
+            }
+        }
     </script>
 </body>
 </html>

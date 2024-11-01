@@ -32,18 +32,18 @@ class Patient(db.Model):
     name = db.Column(db.String(150), nullable=False)
     surname = db.Column(db.String(150), nullable=False)
     dental_num = db.Column(db.String(50), nullable=False)
-    diagnosis = db.Column(db.Text, nullable=True)  # เปลี่ยนเป็น Text เพื่อรองรับข้อมูลหลายรายการ
-    icd10 = db.Column(db.Text, nullable=True)      # เปลี่ยนเป็น Text เช่นกัน
+    diagnosis = db.Column(db.String(255), nullable=True)
+    icd10 = db.Column(db.String(10), nullable=True)
     visit_type = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False)
 
-    def add_diagnosis(self, diagnosis, icd_code):
-        if self.diagnosis:
-            self.diagnosis += f",{diagnosis}"
-            self.icd10 += f",{icd_code}"
-        else:
-            self.diagnosis = diagnosis
-            self.icd10 = icd_code
+class Diagnosis(db.Model):
+    __bind_key__ = 'patients'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)  # ชื่อผู้ป่วย
+    surname = db.Column(db.String(150), nullable=False)  # นามสกุลผู้ป่วย
+    diagnosis = db.Column(db.String(255), nullable=True)
+    icd10 = db.Column(db.String(10), nullable=True)
 
 
 @app.route('/')
@@ -81,6 +81,26 @@ def reg():
         return {"success": True, "message": "ลงทะเบียนสำเร็จ!"}, 200
     return render_template('reg.html')
 
+
+@app.route('/details/<string:dental_number>')
+def details(dental_number):
+    # ดึงข้อมูลการวินิจฉัยและรายละเอียดการเยี่ยมของผู้ป่วย
+    results = db.session.query(Patient, Diagnosis).filter(Patient.dental_num == dental_number).all()
+    
+    if not results: 
+        return jsonify([])
+
+    details_list = []
+    for patient, diagnosis in results:
+        details_list.append({
+            "date": patient.date.strftime("%Y-%m-%d"),
+            "diagnosis": diagnosis.diagnosis,
+            "icd_10": diagnosis.icd10,
+            "type_of_visit": patient.visit_type,
+        })
+    
+    return jsonify(details_list)
+
 @app.route('/main')
 def main():
     patients = Patient.query.all()
@@ -97,10 +117,8 @@ def search_results():
     filter_type = data.get("filterType")
     filter_value = data.get("filterValue", "").lower()
 
-    # ค้นหาจากตาราง Patient
-    query = db.session.query(Patient)
+    query = db.session.query(Patient, Diagnosis).filter(Patient.name == Diagnosis.name, Patient.surname == Diagnosis.surname)
 
-    # กำหนดตัวกรองตามประเภทที่เลือก
     if filter_type == "name":
         query = query.filter(Patient.name.ilike(f"%{filter_value}%"))
     elif filter_type == "surname":
@@ -108,9 +126,9 @@ def search_results():
     elif filter_type == "dental_number":
         query = query.filter(Patient.dental_num.ilike(f"%{filter_value}%"))
     elif filter_type == "diagnosis":
-        query = query.filter(Patient.diagnosis.ilike(f"%{filter_value}%"))
+        query = query.filter(Diagnosis.diagnosis.ilike(f"%{filter_value}%"))
     elif filter_type == "icd_10":
-        query = query.filter(Patient.icd10.ilike(f"%{filter_value}%"))
+        query = query.filter(Diagnosis.icd10.ilike(f"%{filter_value}%"))
     elif filter_type == "type_of_visit":
         query = query.filter(Patient.visit_type.ilike(f"%{filter_value}%"))
     elif filter_type == "date":
@@ -118,26 +136,19 @@ def search_results():
             search_date = datetime.strptime(filter_value, "%Y-%m-%d").date()
             query = query.filter(Patient.date == search_date)
         except ValueError:
-            return jsonify([])  # คืนค่าเป็นรายการว่างหากมีข้อผิดพลาดในการแปลงวันที่
+            return jsonify([])
 
-    # ดึงผลลัพธ์จากการค้นหา
-    results = []
-    for patient in query.all():
-        diagnoses = patient.diagnosis.split(",") if patient.diagnosis else ["-"]
-        icd10_codes = patient.icd10.split(",") if patient.icd10 else ["-"]
+    results = query.all()
+    return jsonify([{
+        "name": patient.name,
+        "surname": patient.surname,
+        "dental_number": patient.dental_num,
+        "diagnosis": diagnosis.diagnosis,
+        "icd_10": diagnosis.icd10,
+        "type_of_visit": patient.visit_type,
+        "date": patient.date.strftime("%Y-%m-%d")
+    } for patient, diagnosis in results])
 
-        for diagnosis, icd_code in zip(diagnoses, icd10_codes):
-            results.append({
-                "name": patient.name,
-                "surname": patient.surname,
-                "dental_number": patient.dental_num,
-                "diagnosis": diagnosis.strip() if diagnosis else "-",
-                "icd_10": icd_code.strip() if icd_code else "-",
-                "type_of_visit": patient.visit_type,
-                "date": patient.date.strftime("%Y-%m-%d") if patient.date else "-"
-            })
-
-    return jsonify(results)  # คืนค่าผลลัพธ์เมื่อค้นหาเสร็จสิ้น
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
@@ -158,23 +169,26 @@ def add():
             date=date
         )
         db.session.add(new_patient)
-        db.session.commit()  # บันทึกผู้ป่วยใหม่ก่อน
+        db.session.commit()
 
-        # เพิ่มการวินิจฉัยหลายรายการ
+        # เพิ่มการวินิจฉัยของผู้ป่วย
         diagnoses = request.form.getlist('diagnosis[]')
         icd10_codes = request.form.getlist('icd10[]')
         
-        for diagnosis, icd10 in zip(diagnoses, icd10_codes):
-            if diagnosis or icd10:  # เพิ่มเฉพาะถ้ามีค่ามากกว่าหนึ่งฟิลด์
-                new_patient.add_diagnosis(diagnosis, icd10)  # ใช้ฟังก์ชันเพิ่มการวินิจฉัย
+        for diagnosis_text, icd10_code in zip(diagnoses, icd10_codes):
+            new_diagnosis = Diagnosis(
+                name=name,
+                surname=surname,
+                diagnosis=diagnosis_text,
+                icd10=icd10_code
+            )
+            db.session.add(new_diagnosis)
 
         db.session.commit()
-        flash('เพิ่มข้อมูลผู้ป่วยสำเร็จ!')  # แสดงข้อความเมื่อเพิ่มสำเร็จ
+        
         return redirect(url_for('add'))
-
+    
     return render_template('add.html')
-
-
 
 # สร้างตารางฐานข้อมูลเมื่อเริ่มต้น
 with app.app_context():

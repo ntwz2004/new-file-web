@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.scss') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
   </head>
   <body>
@@ -26,21 +27,29 @@
     </header>
 
     <section class="hero-section">
+      <div class="container">
+        <div class="box">
+          <div class="boxContent">
+            <i class="fa fa-microchip icon"></i>
+            <h1 class="title">Add Patient</h1>
+            <p class="desc">Less unicorn and apart and credibly yikes touched much jeez that so reverent the by a as that kiwi fed wherever more aboard.</p>
+          </div>
+          <a href="{{ url_for('add') }}"></a>
+        </div>
+        <div class="box">
+          <div class="boxContent">
+            <i class="fa fa-calendar icon"></i>
+            <h1 class="title">Search Patient</h1>
+            <p class="desc">Less unicorn and apart and credibly yikes touched much jeez that so reverent the by a as that kiwi fed wherever more aboard.</p>
+          </div>
+          <a href="{{ url_for('search') }}"></a>
+        </div>
         
+      </div>
       </section>
       
 
-    <script>
-      const header = document.querySelector("header");
-      const hamburgerBtn = document.querySelector("#hamburger-btn");
-      const closeMenuBtn = document.querySelector("#close-menu-btn");
-
-      // Toggle mobile menu on hamburger button click
-      hamburgerBtn.addEventListener("click", () => header.classList.toggle("show-mobile-menu"));
-
-      // Close mobile menu on close button click
-      closeMenuBtn.addEventListener("click", () => hamburgerBtn.click());
-    </script>
+    
     
 
   </body>
