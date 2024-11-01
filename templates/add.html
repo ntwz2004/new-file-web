@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
+    <title>Add Patient</title>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a class="logo" href="{{ url_for('main') }}">
+                <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
+            </a>
+            <ul class="menu-links">
+                <li><a href="{{ url_for('main') }}">Home</a></li>
+                <li><a href="{{ url_for('add') }}">Add</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('index') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="form-container">
+        <h2>Add Patient</h2>
+        <form action="{{ url_for('add') }}" method="POST">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required placeholder="Enter name">
+                
+                <label for="surname">Surname</label>
+                <input type="text" id="surname" name="surname" required placeholder="Enter surname">
+            </div>
+            
+            <div class="form-group">
+                <label for="dental_num">Dental Number</label>
+                <input type="text" id="dental_num" name="dental_num" required placeholder="Enter dental number">
+            </div>
+            
+            <div id="diagnosis-section">
+                <div class="diagnosis-group">
+                    <label for="diagnosis">Diagnosis</label>
+                    <input type="text" id="diagnosis" name="diagnosis[]" placeholder="Enter diagnosis">
+                    
+                    <label for="icd10">ICD-10</label>
+                    <input type="text" id="icd10" name="icd10[]" placeholder="Enter ICD-10">
+                    
+                    <button type="button" class="add-button" aria-label="Add diagnosis">+</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="visit_type">Type of Visit</label>
+                <select id="visit_type" name="visit_type" required>
+                    <option value="" disabled selected>Please select a visit type</option>
+                    <option value="New patient">New Patient</option>
+                    <option value="Follow up">Follow Up</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            
+            <button type="submit">Add Patient</button>
+            <button type="reset" class="reset-button">Reset</button>
+        </form>
+    </main>
+
+    <script>
+        document.querySelector('.add-button').addEventListener('click', function() {
+            const diagnosisSection = document.getElementById('diagnosis-section');
+            const newDiagnosisGroup = document.createElement('div');
+            newDiagnosisGroup.classList.add('diagnosis-group');
+        
+            newDiagnosisGroup.innerHTML = `
+                <label>Diagnosis</label>
+                <input type="text" name="diagnosis[]" placeholder="Enter diagnosis">
+                
+                <label>ICD-10</label>
+                <input type="text" name="icd10[]" placeholder="Enter ICD-10">
+                
+                <button type="button" class="remove-button" aria-label="Remove diagnosis">-</button>
+            `;
+        
+            diagnosisSection.appendChild(newDiagnosisGroup);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-button')) {
+                e.target.closest('.diagnosis-group').remove();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th"> <!-- เปลี่ยนภาษาของเอกสารเป็นภาษาไทย -->
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <title>เข้าสู่ระบบ</title> <!-- เปลี่ยนชื่อเรื่อง -->
+  <script>
+    async function loginUser(event) {
+      event.preventDefault(); // หยุดการส่งแบบฟอร์มตามปกติ
+
+      const formData = new FormData(event.target);
+      const response = await fetch("{{ url_for('login') }}", {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        window.location.href = "{{ url_for('main') }}"; // เปลี่ยนเส้นทางไปที่หน้าหลักหากเข้าสู่ระบบสำเร็จ
+      } else {
+        alert(result.message); // แสดงข้อความผิดพลาด
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="title"><span>เข้าสู่ระบบ</span></div> <!-- เปลี่ยนข้อความที่แสดง -->
+    <form onsubmit="loginUser(event)">
+      <div class="row">
+        <i class="fas fa-user"></i>
+        <input type="text" name="email_or_username" placeholder="อีเมลหรือชื่อผู้ใช้" required /> <!-- เปลี่ยนข้อความ placeholder -->
+      </div>
+      <div class="row">
+        <i class="fas fa-lock"></i>
+        <input type="password" name="password" placeholder="รหัสผ่าน" required /> <!-- เปลี่ยนข้อความ placeholder -->
+      </div>
+      <div class="pass"><a href="#">ลืมรหัสผ่าน?</a></div> <!-- เปลี่ยนข้อความ -->
+      <div class="row button">
+        <input type="submit" value="เข้าสู่ระบบ" /> <!-- เปลี่ยนข้อความปุ่ม -->
+      </div>
+      <div class="home-link">
+        <button onclick="window.location.href='{{ url_for('index') }}'">กลับไปที่หน้าแรก</button> <!-- เปลี่ยนข้อความ -->
+      </div>
+      <div class="signup-link">ยังไม่ได้เป็นสมาชิก? <a href="{{ url_for('reg') }}">สมัครสมาชิกตอนนี้</a></div> <!-- เปลี่ยนข้อความ -->
+    </form>
+  </div>
+</body>
+</html>
