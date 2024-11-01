@@ -6,23 +6,33 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='search.css') }}">
-   
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
     <title>Search Page</title>
 </head>
 <body>
     <header>
         <nav class="navbar">
-            <a class="logo" href="{{ url_for('main') }}">
-                <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
-            </a>
-            <ul class="menu-links">
+          <a class="logo" href="{{ url_for('main') }}">
+            <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
+          </a>
+          <ul class="menu-links">
+            <span id="close-menu-btn" class="material-symbols-outlined">close</span>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" id="profile-icon">
+                <span class="material-symbols-outlined">account_circle</span> 
+                <span class="username">{{ current_user }}</span>
+              </a>
+              <ul class="dropdown-menu">
                 <li><a href="{{ url_for('main') }}">Home</a></li>
                 <li><a href="{{ url_for('add') }}">Add</a></li>
-                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('search') }}">Search/Edit</a></li>
                 <li><a href="{{ url_for('index') }}">Logout</a></li>
-            </ul>
+              </ul>
+            </li>
+          </ul>
         </nav>
-    </header>
+      </header>
 
     <main>
         <section class="filter-section">
@@ -33,18 +43,20 @@
                 <option value="diagnosis">Diagnosis</option>
                 <option value="icd_10">ICD-10</option>
                 <option value="type_of_visit">Type of Visit</option>
-                <option value="date">Date</option>
+                <option value="date">Date</option>  
+                
             </select>
 
-            <input type="text" id="filter-input" name="filter_value" placeholder="Enter Name" style="display: inline;" onkeydown="handleEnter(event)" />
+            <input type="text" id="filter-input" name="filter_value" placeholder="Enter Name" style="display: inline;" />
             <select id="visit-type-select" style="display: none;">
                 <option value="">Select Visit Type</option>
                 <option value="New patient">New Patient</option>
                 <option value="Follow up">Follow Up</option>
+
             </select>
 
             <button type="button" class="button" onclick="performSearch()">Search</button>
-            <button type="button" class="reset-button" onclick="resetFilters()">Reset</button>
+            <button type="button" class="reset-button"  onclick="resetFilters()">Reset</button>
         </section>
 
         <!-- Table to display search results -->
@@ -58,11 +70,16 @@
                     <th>ICD-10</th>
                     <th>Type of Visit</th>
                     <th>Date</th>
+                    
                 </tr>
             </thead>
             <tbody id="table-body">
+            
             </tbody>
         </table>
+
+        
+
     </main>
 
     <script>
@@ -113,7 +130,7 @@
             const filterValue = filterType === "type_of_visit" ? document.getElementById("visit-type-select").value : document.getElementById("filter-input").value;
             const table = document.getElementById("result-table");
             const tableBody = document.getElementById("table-body");
-
+        
             fetch('/search_results', {
                 method: 'POST',
                 headers: {
@@ -123,29 +140,37 @@
             })
             .then(response => response.json())
             .then(data => {
-                tableBody.innerHTML = "";
+                tableBody.innerHTML = ""; // ล้างข้อมูลก่อนแสดงผลลัพธ์ใหม่
                 if (data.length > 0) {
-                    table.style.display = "table";
-                    data.forEach((item) => {
+                    table.style.display = "table"; // แสดงตารางเมื่อมีผลลัพธ์
+                    
+                    data.forEach((item, index) => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
                             <td>${item.name}</td>
                             <td>${item.surname}</td>
                             <td>${item.dental_number}</td>
-                            <td>${item.diagnosis || ""}</td>  <!-- ใช้ค่าว่างถ้า diagnosis ไม่มีค่า -->
-                            <td>${item.icd_10 || ""}</td>     <!-- ใช้ค่าว่างถ้า icd_10 ไม่มีค่า -->
+                            <td>${item.diagnosis || "-"}</td>
+                            <td>${item.icd_10 || "-"}</td>
                             <td>${item.type_of_visit}</td>
                             <td>${item.date}</td>
+                            <td><button onclick="showMore(${index})">More</button></td>
                         `;
                         tableBody.appendChild(row);
                     });
                 } else {
                     table.style.display = "none";
-                    alert("No results found.");
+                    alert("ไม่พบผลลัพธ์.");
                 }
             })
             .catch(error => console.error('Error:', error));
         }
+        
+        // ฟังก์ชันแสดงข้อมูลเพิ่มเติมตาม index ของแถว
+        function showMore(index) {
+            alert(`แสดงข้อมูลเพิ่มเติมสำหรับแถวที่ ${index + 1}`); // สามารถเปลี่ยนเป็นโค้ดที่แสดงข้อมูลเพิ่มเติมตามต้องการ
+        }
+        
 
         function resetFilters() {
             // Reset filter type to default
@@ -157,12 +182,21 @@
             document.getElementById("visit-type-select").style.display = "none"; // Hide visit type select
             document.getElementById("visit-type-select").value = ""; // Reset visit type select
         }
+
+        // แสดงหรือซ่อนเมนูเมื่อคลิกที่โปรไฟล์
+      document.getElementById('profile-icon').addEventListener('click', function(event) {
+        event.stopPropagation(); // ป้องกันไม่ให้คลิกในโปรไฟล์ทำให้หน้าต่างปิด
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // ปิดเมนูเมื่อคลิกนอกโปรไฟล์
+      document.addEventListener('click', function() {
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        dropdownMenu.style.display = 'none';
+      });
+
         
-        function handleEnter(event) {
-            if (event.key === "Enter") {
-                performSearch();
-            }
-        }
     </script>
 </body>
 </html>

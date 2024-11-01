@@ -1,27 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
-    <title>Add Patient</title>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
+        <title>Add Patient</title>
+    </head>
+    
 <body>
     <header>
         <nav class="navbar">
-            <a class="logo" href="{{ url_for('main') }}">
-                <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
-            </a>
-            <ul class="menu-links">
+          <a class="logo" href="{{ url_for('main') }}">
+            <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
+          </a>
+          <ul class="menu-links">
+            <span id="close-menu-btn" class="material-symbols-outlined">close</span>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" id="profile-icon">
+                <span class="material-symbols-outlined">account_circle</span> 
+                <span class="username">{{ current_user }}</span>
+              </a>
+              <ul class="dropdown-menu">
                 <li><a href="{{ url_for('main') }}">Home</a></li>
                 <li><a href="{{ url_for('add') }}">Add</a></li>
-                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('search') }}">Search/Edit</a></li>
                 <li><a href="{{ url_for('index') }}">Logout</a></li>
-            </ul>
+              </ul>
+            </li>
+          </ul>
         </nav>
-    </header>
+      </header>
 
     <main class="form-container">
         <h2>Add Patient</h2>
@@ -92,12 +103,22 @@
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('remove-button')) {
                 e.target.closest('.diagnosis-group').remove();
-            }   
+            }
         });
+
+        // แสดงหรือซ่อนเมนูเมื่อคลิกที่โปรไฟล์
+      document.getElementById('profile-icon').addEventListener('click', function(event) {
+        event.stopPropagation(); // ป้องกันไม่ให้คลิกในโปรไฟล์ทำให้หน้าต่างปิด
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // ปิดเมนูเมื่อคลิกนอกโปรไฟล์
+      document.addEventListener('click', function() {
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        dropdownMenu.style.display = 'none';
+      });
+
     </script>
-
-    
-
-    
 </body>
 </html>
