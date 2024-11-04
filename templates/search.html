@@ -78,7 +78,73 @@
             </tbody>
         </table>
 
+        <!-- Modal for editing patient information -->
+<!-- Modal for editing patient information -->
+<div id="editModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">×</span>
+        <h2>Edit Patient Information</h2>
         
+        <!-- Form to edit information -->
+        <form id="edit-form">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div style="flex: 1;">
+                    <label for="edit-name">Name:</label>
+                    <input type="text" id="edit-name" name="name">
+                </div>
+                <div style="flex: 1;">
+                    <label for="edit-surname">Surname:</label>
+                    <input type="text" id="edit-surname" name="surname">
+                </div>
+            </div>
+        
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div style="flex: 1;">
+                    <label for="edit-dental-number">Dental Number:</label>
+                    <input type="text" id="edit-dental-number" name="dental_number">
+                </div>
+            </div>
+        
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div style="flex: 1;">
+                    <label for="edit-diagnosis">Diagnosis:</label>
+                    <input type="text" id="edit-diagnosis" name="diagnosis">
+                </div>
+                <div style="flex: 1;">
+                    <label for="edit-icd10">ICD-10:</label>
+                    <input type="text" id="edit-icd10" name="icd10">
+                </div>
+            </div>
+        
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div style="flex: 1;">
+                    <label for="edit-visit-type">Type of Visit:</label>
+                    <input type="text" id="edit-visit-type" name="visit_type">
+                </div>
+            </div>
+        
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div style="flex: 1;">
+                    <label for="edit-date">Date:</label>
+                    <input type="date" id="edit-date" name="date">
+                </div>
+                <div style="flex: 1;">
+                    <label for="created-by">Added by:</label>
+                    <input type="text" id="created-by" name="created_by" readonly>
+                </div>
+            </div>
+        
+            <button type="button" onclick="saveChanges()">Save</button>
+            <button type="button" class="delete-button" style="background-color: red; color: white;" onclick="deletePatient()">Delete</button>
+        </form>
+        
+    </div>
+</div>
+
+        
+    </div>
+</div>
+
 
     </main>
 
@@ -150,11 +216,11 @@
                             <td>${item.name}</td>
                             <td>${item.surname}</td>
                             <td>${item.dental_number}</td>
-                            <td>${item.diagnosis || "-"}</td>
-                            <td>${item.icd_10 || "-"}</td>
+                            <td>${item.diagnosis}</td>
+                            <td>${item.icd_10}</td>
                             <td>${item.type_of_visit}</td>
                             <td>${item.date}</td>
-                            <td><button onclick="showMore(${index})">More</button></td>
+                            <td><button onclick="showMore(${index})">Edit</button></td>
                         `;
                         tableBody.appendChild(row);
                     });
@@ -166,10 +232,7 @@
             .catch(error => console.error('Error:', error));
         }
         
-        // ฟังก์ชันแสดงข้อมูลเพิ่มเติมตาม index ของแถว
-        function showMore(index) {
-            alert(`แสดงข้อมูลเพิ่มเติมสำหรับแถวที่ ${index + 1}`); // สามารถเปลี่ยนเป็นโค้ดที่แสดงข้อมูลเพิ่มเติมตามต้องการ
-        }
+        
         
 
         function resetFilters() {
@@ -197,6 +260,87 @@
       });
 
         
+      let currentPatient = null;
+
+      function showMore(index) {
+          // ดึงข้อมูลผู้ป่วยตาม index ที่เลือก
+          fetch(`/get_patient_data?index=${index}`)
+              .then(response => response.json())
+              .then(data => {
+                  // เปิด modal และใส่ข้อมูลในฟอร์ม
+                  document.getElementById("edit-name").value = data.name;
+                  document.getElementById("edit-surname").value = data.surname;
+                  document.getElementById("edit-dental-number").value = data.dental_number;
+                  document.getElementById("edit-diagnosis").value = data.diagnosis;
+                  document.getElementById("edit-icd10").value = data.icd10;
+                  document.getElementById("edit-visit-type").value = data.type_of_visit;
+                  document.getElementById("edit-date").value = data.date;
+                  document.getElementById("created-by").value = data.created_by; // แสดงชื่อผู้เพิ่มข้อมูล
+                  
+                  // แสดง modal
+                  document.getElementById("editModal").style.display = "flex";
+                  currentPatient = data; // เก็บข้อมูลผู้ป่วยปัจจุบัน
+              });
+      }
+      
+      function closeModal() {
+          document.getElementById("editModal").style.display = "none";
+          currentPatient = null;
+      }
+      
+      function saveChanges() {
+          // ดึงข้อมูลที่แก้ไข
+          const updatedData = {
+              name: document.getElementById("edit-name").value,
+              surname: document.getElementById("edit-surname").value,
+              dental_number: document.getElementById("edit-dental-number").value,
+              diagnosis: document.getElementById("edit-diagnosis").value,
+              icd10: document.getElementById("edit-icd10").value,
+              type_of_visit: document.getElementById("edit-visit-type").value,
+              date: document.getElementById("edit-date").value,
+          };
+      
+          // ส่งข้อมูลที่แก้ไขไปยังเซิร์ฟเวอร์
+          fetch(`/update_patient/${currentPatient.id}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(updatedData)
+          })
+          .then(response => response.json())
+          .then(result => {
+              if (result.success) {
+                  alert("ข้อมูลได้รับการแก้ไขแล้ว");
+                  closeModal();
+                  performSearch(); // อัปเดตผลลัพธ์การค้นหา
+              } else {
+                  alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+              }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+      function deletePatient() {
+        if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลผู้ป่วยนี้?")) {
+            fetch(`/delete_patient/${currentPatient.id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message); // แสดงข้อความยืนยันการลบ
+                    closeModal();
+                    performSearch(); // อัปเดตผลลัพธ์การค้นหา
+                } else {
+                    alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+    
+    
+
     </script>
 </body>
 </html>

@@ -36,6 +36,7 @@ class Patient(db.Model):
     icd10 = db.Column(db.Text, nullable=True)      # เปลี่ยนเป็น Text เช่นกัน
     visit_type = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False)
+    created_by = db.Column(db.String(150), nullable=True)
 
     def add_diagnosis(self, diagnosis, icd_code):
         if self.diagnosis:
@@ -107,10 +108,8 @@ def search_results():
     filter_type = data.get("filterType")
     filter_value = data.get("filterValue", "").lower()
 
-    # ค้นหาจากตาราง Patient
     query = db.session.query(Patient)
 
-    # กำหนดตัวกรองตามประเภทที่เลือก
     if filter_type == "name":
         query = query.filter(Patient.name.ilike(f"%{filter_value}%"))
     elif filter_type == "surname":
@@ -128,26 +127,29 @@ def search_results():
             search_date = datetime.strptime(filter_value, "%Y-%m-%d").date()
             query = query.filter(Patient.date == search_date)
         except ValueError:
-            return jsonify([])  # คืนค่าเป็นรายการว่างหากมีข้อผิดพลาดในการแปลงวันที่
+            return jsonify([])
 
-    # ดึงผลลัพธ์จากการค้นหา
     results = []
     for patient in query.all():
         diagnoses = patient.diagnosis.split(",") if patient.diagnosis else ["-"]
         icd10_codes = patient.icd10.split(",") if patient.icd10 else ["-"]
 
-        for diagnosis, icd_code in zip(diagnoses, icd10_codes):
-            results.append({
-                "name": patient.name,
-                "surname": patient.surname,
-                "dental_number": patient.dental_num,
-                "diagnosis": diagnosis.strip() if diagnosis else "-",
-                "icd_10": icd_code.strip() if icd_code else "-",
-                "type_of_visit": patient.visit_type,
-                "date": patient.date.strftime("%Y-%m-%d") if patient.date else "-"
-            })
+        # ใช้ <br> แทนการคั่นด้วย comma
+        diagnosis_text = "<br>".join(diagnoses).strip() if diagnoses else "-"
+        icd_text = "<br>".join(icd10_codes).strip() if icd10_codes else "-"
 
-    return jsonify(results)  # คืนค่าผลลัพธ์เมื่อค้นหาเสร็จสิ้น
+        results.append({
+            "name": patient.name,
+            "surname": patient.surname,
+            "dental_number": patient.dental_num,
+            "diagnosis": diagnosis_text,
+            "icd_10": icd_text,
+            "type_of_visit": patient.visit_type,
+            "date": patient.date.strftime("%Y-%m-%d") if patient.date else "-"
+        })
+
+    return jsonify(results)
+
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
@@ -158,33 +160,79 @@ def add():
         visit_type = request.form.get('visit_type')
         date_str = request.form.get('date')
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # เก็บชื่อผู้ใช้ที่เพิ่มข้อมูล
+        created_by = session.get('username')  # ดึงข้อมูล username จาก session
 
-        # เพิ่มผู้ป่วยใหม่
+        # เพิ่มผู้ป่วยใหม่และบันทึกชื่อผู้ใช้ที่ทำการเพิ่มข้อมูล
         new_patient = Patient(
             name=name,
             surname=surname,
             dental_num=dental_num,
             visit_type=visit_type,
-            date=date
+            date=date,
+            created_by=created_by
         )
         db.session.add(new_patient)
-        db.session.commit()  # บันทึกผู้ป่วยใหม่ก่อน
+        db.session.commit()
 
         # เพิ่มการวินิจฉัยหลายรายการ
         diagnoses = request.form.getlist('diagnosis[]')
         icd10_codes = request.form.getlist('icd10[]')
         
         for diagnosis, icd10 in zip(diagnoses, icd10_codes):
-            if diagnosis or icd10:  # เพิ่มเฉพาะถ้ามีค่ามากกว่าหนึ่งฟิลด์
-                new_patient.add_diagnosis(diagnosis, icd10)  # ใช้ฟังก์ชันเพิ่มการวินิจฉัย
+            if diagnosis or icd10:
+                new_patient.add_diagnosis(diagnosis, icd10)
 
         db.session.commit()
-        flash('เพิ่มข้อมูลผู้ป่วยสำเร็จ!')  # แสดงข้อความเมื่อเพิ่มสำเร็จ
+        flash('เพิ่มข้อมูลผู้ป่วยสำเร็จ!')
         return redirect(url_for('add'))
 
     return render_template('add.html')
 
 
+@app.route('/get_patient_data')
+def get_patient_data():
+    index = request.args.get('index', type=int)
+    patient = Patient.query.all()[index]
+    data = {
+        "id": patient.id,
+        "name": patient.name,
+        "surname": patient.surname,
+        "dental_number": patient.dental_num,
+        "diagnosis": patient.diagnosis,
+        "icd10": patient.icd10,
+        "type_of_visit": patient.visit_type,
+        "date": patient.date.strftime("%Y-%m-%d") if patient.date else "-",
+        "created_by": patient.created_by  # ส่งชื่อผู้ใช้ที่เพิ่มข้อมูล
+    }
+    return jsonify(data)
+
+
+@app.route('/update_patient/<int:patient_id>', methods=['POST'])
+def update_patient(patient_id):
+    data = request.get_json()
+    patient = Patient.query.get_or_404(patient_id)
+    patient.name = data.get('name')
+    patient.surname = data.get('surname')
+    patient.dental_num = data.get('dental_number')
+    patient.diagnosis = data.get('diagnosis')
+    patient.icd10 = data.get('icd10')
+    patient.visit_type = data.get('type_of_visit')
+    patient.date = datetime.strptime(data.get('date'), "%Y-%m-%d") if data.get('date') else None
+
+    db.session.commit()
+    return jsonify({"success": True})
+
+@app.route('/delete_patient/<int:patient_id>', methods=['DELETE'])
+def delete_patient(patient_id):
+    patient = Patient.query.get(patient_id)
+    if patient:
+        db.session.delete(patient)
+        db.session.commit()
+        return jsonify(success=True, message="ลบข้อมูลเรียบร้อยแล้ว")
+    return jsonify(success=False, message="ไม่พบข้อมูลที่ต้องการลบ")
+    
 
 # สร้างตารางฐานข้อมูลเมื่อเริ่มต้น
 with app.app_context():
