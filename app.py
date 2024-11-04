@@ -62,6 +62,8 @@ def login():
             return jsonify(success=True)
         else:
             return jsonify(success=False, message="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง.")
+        
+    
     return render_template('login.html')
 
 @app.route('/logout')

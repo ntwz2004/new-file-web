@@ -79,9 +79,8 @@ header .navbar {
 .inner-header .content { 
   margin: 0 auto;
   color: #fff; 
-  border: 5px solid rgba(118, 163, 137, 0.8); /* กรอบโปร่งแสง */
   padding: 30px; /* ระยะห่างระหว่างขอบกับเนื้อหา */
-  background-color: rgba(110, 189, 123, 0.5); /* พื้นหลังสีดำโปร่งแสง */
+  background-color: rgba(26, 188, 156, 0.5); /* พื้นหลังสีดำโปร่งแสง */
   border-radius: 50px; /* กำหนดขอบโค้ง */
 }
 
@@ -98,7 +97,7 @@ header .navbar {
 }
 
 .inner-header .content button {
-  background: #1abc9c;
+  background: #e67e22;
   padding: 12px 20px;
   border: none;
   border-radius: 6px;
@@ -274,7 +273,7 @@ tr:hover {
 button {
   width: 100%; /* ปุ่มเต็มความกว้าง */
   padding: 12px; /* Padding รอบปุ่ม */
-  background-color: #1abc9c; /* สีพื้นหลังของปุ่ม */
+  background-color:#e67e22; /* สีพื้นหลังของปุ่ม */
   color: white; /* สีตัวอักษรของปุ่ม */
   border: none; /* ไม่มีขอบ */
   border-radius: 4px; /* มุมโค้งของปุ่ม */
