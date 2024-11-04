@@ -192,4 +192,48 @@ button:hover {
     margin-right: 10px; /* ระยะห่างระหว่าง label และ input */
 }
 
+.delete-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.delete-button:hover {
+    background-color: darkred; /* สีเข้มขึ้นเมื่อชี้เมาส์ */
+}
+
+/* Styles for the select dropdown */
+select {
+    width: 100%; /* ให้กว้างเต็มที่ */
+    padding: 10px; /* ระยะห่างด้านใน */
+    border: 1px solid #ccc; /* เส้นขอบ */
+    border-radius: 5px; /* มุมโค้ง */
+    font-size: 16px; /* ขนาดฟอนต์ */
+    background-color: #f9f9f9; /* สีพื้นหลัง */
+    transition: border-color 0.3s; /* เอฟเฟกต์การเปลี่ยนสีขอบ */
+}
+
+/* Change border color on focus */
+select:focus {
+    border-color: #4a90e2; /* เปลี่ยนสีเมื่อเลือก */
+    outline: none; /* ลบเส้นขอบที่เป็นดีฟอลต์ */
+}
+
+/* Style for the label */
+label {
+    font-weight: bold; /* ทำให้ฟอนต์หนา */
+    margin-bottom: 5px; /* ระยะห่างด้านล่าง */
+    display: block; /* ให้ label แสดงเป็นบล็อก */
+}
+
+/* Flex container for better alignment */
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* ระยะห่างระหว่างบล็อก */
+}
+
 

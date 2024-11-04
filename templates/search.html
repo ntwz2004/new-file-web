@@ -116,12 +116,16 @@
                 </div>
             </div>
         
-            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <div class="flex-container">
                 <div style="flex: 1;">
                     <label for="edit-visit-type">Type of Visit:</label>
-                    <input type="text" id="edit-visit-type" name="visit_type">
+                    <select id="edit-visit-type" name="visit_type">
+                        <option value="New patient">New Patient</option>
+                        <option value="Follow up">Follow Up</option>
+                    </select>
                 </div>
             </div>
+            
         
             <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                 <div style="flex: 1;">
