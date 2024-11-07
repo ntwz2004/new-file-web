@@ -136,11 +136,11 @@ def search_results():
         diagnoses = patient.diagnosis.split(",") if patient.diagnosis else ["-"]
         icd10_codes = patient.icd10.split(",") if patient.icd10 else ["-"]
 
-        # ใช้ <br> แทนการคั่นด้วย comma
         diagnosis_text = "<br>".join(diagnoses).strip() if diagnoses else "-"
         icd_text = "<br>".join(icd10_codes).strip() if icd10_codes else "-"
 
         results.append({
+            "id": patient.id,  # เพิ่ม ID
             "name": patient.name,
             "surname": patient.surname,
             "dental_number": patient.dental_num,
@@ -193,10 +193,9 @@ def add():
     return render_template('add.html')
 
 
-@app.route('/get_patient_data')
-def get_patient_data():
-    index = request.args.get('index', type=int)
-    patient = Patient.query.all()[index]
+@app.route('/get_patient_data/<int:patient_id>')
+def get_patient_data(patient_id):
+    patient = Patient.query.get_or_404(patient_id)
     data = {
         "id": patient.id,
         "name": patient.name,
@@ -206,13 +205,12 @@ def get_patient_data():
         "icd10": patient.icd10,
         "type_of_visit": patient.visit_type,
         "date": patient.date.strftime("%Y-%m-%d") if patient.date else "-",
-        "created_by": patient.created_by  # ส่งชื่อผู้ใช้ที่เพิ่มข้อมูล
+        "created_by": patient.created_by
     }
     return jsonify(data)
 
-
-@app.route('/update_patient/<int:patient_id>', methods=['POST'])
-def update_patient(patient_id):
+@app.route('/edit_patient/<int:patient_id>', methods=['POST'])
+def edit_patient(patient_id):
     data = request.get_json()
     patient = Patient.query.get_or_404(patient_id)
     patient.name = data.get('name')

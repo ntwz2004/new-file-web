@@ -69,6 +69,7 @@ body {
     color: #1abc9c;
     font-size: 48px;
     padding: 15px;
+    margin-top: 90px;
 }
 .container .box .boxContent .title {
     font-size: 24px;
@@ -89,7 +90,7 @@ body {
     left: 0;
 }
 .container .box:hover {
-    background: linear-gradient(130deg, #18c499 0%, #1abc9c 100%);
+    background: linear-gradient(130deg, #18c499 50%, #1abc9c 100%);
     box-shadow: none;
 }
 .container .box:hover .icon, .container .box:hover .title, .container .box:hover .desc {

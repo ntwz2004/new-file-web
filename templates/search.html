@@ -197,7 +197,9 @@
 
         function performSearch() {
             const filterType = document.getElementById("filter-type").value;
-            const filterValue = filterType === "type_of_visit" ? document.getElementById("visit-type-select").value : document.getElementById("filter-input").value;
+            const filterValue = filterType === "type_of_visit" ? 
+                document.getElementById("visit-type-select").value : 
+                document.getElementById("filter-input").value;
             const table = document.getElementById("result-table");
             const tableBody = document.getElementById("table-body");
         
@@ -210,11 +212,11 @@
             })
             .then(response => response.json())
             .then(data => {
-                tableBody.innerHTML = ""; // ล้างข้อมูลก่อนแสดงผลลัพธ์ใหม่
+                tableBody.innerHTML = "";
                 if (data.length > 0) {
-                    table.style.display = "table"; // แสดงตารางเมื่อมีผลลัพธ์
+                    table.style.display = "table";
                     
-                    data.forEach((item, index) => {
+                    data.forEach(item => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
                             <td>${item.name}</td>
@@ -224,7 +226,7 @@
                             <td>${item.icd_10}</td>
                             <td>${item.type_of_visit}</td>
                             <td>${item.date}</td>
-                            <td><button onclick="showMore(${index})">Edit</button></td>
+                            <td><button onclick="showMore(${item.id})">Edit</button></td>
                         `;
                         tableBody.appendChild(row);
                     });
@@ -266,26 +268,23 @@
         
       let currentPatient = null;
 
-      function showMore(index) {
-          // ดึงข้อมูลผู้ป่วยตาม index ที่เลือก
-          fetch(`/get_patient_data?index=${index}`)
-              .then(response => response.json())
-              .then(data => {
-                  // เปิด modal และใส่ข้อมูลในฟอร์ม
-                  document.getElementById("edit-name").value = data.name;
-                  document.getElementById("edit-surname").value = data.surname;
-                  document.getElementById("edit-dental-number").value = data.dental_number;
-                  document.getElementById("edit-diagnosis").value = data.diagnosis;
-                  document.getElementById("edit-icd10").value = data.icd10;
-                  document.getElementById("edit-visit-type").value = data.type_of_visit;
-                  document.getElementById("edit-date").value = data.date;
-                  document.getElementById("created-by").value = data.created_by; // แสดงชื่อผู้เพิ่มข้อมูล
-                  
-                  // แสดง modal
-                  document.getElementById("editModal").style.display = "flex";
-                  currentPatient = data; // เก็บข้อมูลผู้ป่วยปัจจุบัน
-              });
-      }
+      function showMore(patientId) {
+        fetch(`/get_patient_data/${patientId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("edit-name").value = data.name;
+                document.getElementById("edit-surname").value = data.surname;
+                document.getElementById("edit-dental-number").value = data.dental_number;
+                document.getElementById("edit-diagnosis").value = data.diagnosis;
+                document.getElementById("edit-icd10").value = data.icd10;
+                document.getElementById("edit-visit-type").value = data.type_of_visit;
+                document.getElementById("edit-date").value = data.date;
+                document.getElementById("created-by").value = data.created_by;
+                
+                document.getElementById("editModal").style.display = "flex";
+                currentPatient = data;
+            });
+    }
       
       function closeModal() {
           document.getElementById("editModal").style.display = "none";
@@ -305,7 +304,7 @@
           };
       
           // ส่งข้อมูลที่แก้ไขไปยังเซิร์ฟเวอร์
-          fetch(`/update_patient/${currentPatient.id}`, {
+          fetch(`/edit_patient/${currentPatient.id}`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
