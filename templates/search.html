@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='search.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <title>Search Page</title>
 </head>
@@ -54,9 +57,10 @@
                 <option value="Follow up">Follow Up</option>
 
             </select>
-
-            <button type="button" class="button" onclick="performSearch()">Search</button>
-            <button type="button" class="reset-button"  onclick="resetFilters()">Reset</button>
+            
+                <button type="button" class="button" onclick="performSearch()">Search</button>
+                <button type="button" class="reset-button"  onclick="resetFilters()">Reset</button>
+          
         </section>
 
         <!-- Table to display search results -->
@@ -401,8 +405,12 @@
                             <td>${item.type_of_visit}</td>
                             <td>${item.date}</td>
                             <td>
-                                <button onclick="showMore(${item.id})">Edit</button>
-                                <button onclick="showUpdate(${item.id})">Add</button>
+                                <button onclick="showMore(${item.id})">
+                                    <i class="fa fa-cog"></i> <!-- ไอคอนฟันเฟือง -->
+                                </button>
+                                <button onclick="showUpdate(${item.id})">
+                                    <i class="fa fa-plus"></i> <!-- ไอคอนเครื่องหมายบวก -->
+                                </button>
                             </td
 
                         `;
@@ -532,7 +540,8 @@
                 .catch(error => console.error('Error:', error));
             }
         }
-
+            
+        
         </script>
     </body>
 </html>

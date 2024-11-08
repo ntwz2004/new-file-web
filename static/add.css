@@ -126,30 +126,9 @@ button:hover {
     background: #c0392b; /* เปลี่ยนสีเมื่อโฮเวอร์ */
 }
 
-/* Notification Box */
-.notification {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #28a745; /* สีเขียว */
-    color: white;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    animation: slideIn 0.5s ease-in-out;
-}
-
-/* แอนิเมชัน slide in */
-@keyframes slideIn {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
 /* Modal Overlay */
 .modal {
-    display: none;
+    display: none; /* ซ่อน modal ในตอนเริ่มต้น */
     justify-content: center;
     align-items: center;
     position: fixed;
@@ -159,6 +138,7 @@ button:hover {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 1000;
+    overflow: hidden;
 }
 
 /* Modal Content */
@@ -166,60 +146,30 @@ button:hover {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 20px;
-    width: 600px; /* ลดขนาดความกว้าง */
+    width: 400px; /* กำหนดความกว้างของ modal */
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     position: relative;
     animation: fadeIn 0.3s ease;
-    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* จัดข้อความให้อยู่กลาง */
+    text-align: center; /* จัดข้อความใน modal ให้อยู่กลาง */
+    top: 30%; /* ตำแหน่งเริ่มต้นจากด้านบน */
+    left: 37%; /* ตำแหน่งเริ่มต้นจากด้านซ้าย */
 }
 
-/* Close Button */
-.close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #e74c3c;
-}
-
-/* Form Elements */
-.modal-content h2 {
+/* ฟอนต์และการจัดตำแหน่งข้อความใน modal */
+.modal-content h3 {
     color: #1abc9c;
     margin-bottom: 20px;
-    text-align: center;
 }
 
-.modal-content label {
-    font-size: 14px;
-    color: #333;
+.modal-content p {
+    margin-bottom: 30px;
 }
 
-.modal-content .form-row {
-    display: flex;
-    gap: 10px; /* ระยะห่างระหว่าง input */
-    margin-top: 10px;
-}
-
-.modal-content .form-row label {
-    flex: 1;
-}
-
-.modal-content input[type="text"],
-.modal-content input[type="date"] {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    font-size: 16px;
-}
-
-.modal-content input[readonly] {
-    background-color: #f4f4f4;
-    color: #666;
-}
-
-/* Save Changes Button */
+/* ปรับปุ่มให้ดูดีขึ้น */
 .modal-content button {
     background-color: #1abc9c;
     color: white;
@@ -228,11 +178,12 @@ button:hover {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
+    width: 100%; /* ให้ปุ่มกว้างเต็ม */
     transition: background-color 0.3s;
+    margin-top: 10px; /* เว้นระยะห่างจากข้อความ */
 }
 
+/* ปรับสีเมื่อ hover ที่ปุ่ม */
 .modal-content button:hover {
     background-color: #16a085;
 }
