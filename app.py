@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template, request, redirect, session, url_for, flash
+from flask_login import current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -59,11 +60,9 @@ def login():
         user = User.query.filter((User.email == email_or_username) | (User.username == email_or_username)).first()
         if user and user.check_password(password):
             session['username'] = user.username  # เก็บ username ใน session
-            return jsonify(success=True)
+            return redirect(url_for('main'))
         else:
             return jsonify(success=False, message="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง.")
-        
-    
     return render_template('login.html')
 
 @app.route('/logout')
@@ -91,7 +90,7 @@ def reg():
         db.session.add(new_user)
         db.session.commit()
         
-        return {"success": True, "message": "ลงทะเบียนสำเร็จ!"}, 200
+        return redirect(url_for('login'))
     return render_template('reg.html')
 
 @app.route('/main')
@@ -188,7 +187,7 @@ def add():
 
         db.session.commit()
         flash('เพิ่มข้อมูลผู้ป่วยสำเร็จ!')
-        return redirect(url_for('add'))
+        return jsonify({"success": True})
 
     return render_template('add.html')
 
@@ -233,6 +232,33 @@ def delete_patient(patient_id):
         return jsonify(success=True, message="ลบข้อมูลเรียบร้อยแล้ว")
     return jsonify(success=False, message="ไม่พบข้อมูลที่ต้องการลบ")
     
+@app.route('/add_visit/<int:patient_id>', methods=['POST'])
+def add_visit(patient_id):
+    data = request.get_json()
+
+    diagnosis = data.get('diagnosis','')
+    icd10 = data.get('icd10','')
+
+    # Save the diagnosis and icd10 values as strings in the database
+    new_visit = Patient(
+        name=data['name'],
+        surname=data['surname'],
+        dental_num=data['dental_number'],
+        diagnosis=diagnosis,  # Save as a single string
+        icd10=icd10,  # Save as a single string
+        visit_type="Follow up",
+        date=datetime.strptime(data['date'], "%Y-%m-%d").date(),
+        created_by=session.get('username')
+    )
+    
+    db.session.add(new_visit)
+    
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "message": "New visit added successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)})
 
 # สร้างตารางฐานข้อมูลเมื่อเริ่มต้น
 with app.app_context():

@@ -1,42 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-        <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
-        <title>Add Patient</title>
-    </head>
-    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
+    <title>Add Patient</title>
+</head>
 <body>
     <header>
         <nav class="navbar">
-          <a class="logo" href="{{ url_for('main') }}">
-            <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
-          </a>
-          <ul class="menu-links">
-            <span id="close-menu-btn" class="material-symbols-outlined">close</span>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" id="profile-icon">
-                <span class="material-symbols-outlined">account_circle</span> 
-                <span class="username">{{ current_user }}</span>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a href="{{ url_for('main') }}">Home</a></li>
-                <li><a href="{{ url_for('add') }}">Add</a></li>
-                <li><a href="{{ url_for('search') }}">Search/Edit</a></li>
-                <li><a href="{{ url_for('index') }}">Logout</a></li>
-              </ul>
-            </li>
-          </ul>
+            <a class="logo" href="{{ url_for('main') }}">
+                <img src="https://bit.ly/3Ak5v7V" alt="Logo" />
+            </a>
+            <ul class="menu-links">
+                <span id="close-menu-btn" class="material-symbols-outlined">close</span>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" id="profile-icon">
+                        <span class="material-symbols-outlined">account_circle</span> 
+                        <span class="username">{{ current_user }}</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('main') }}">Home</a></li>
+                        <li><a href="{{ url_for('add') }}">Add</a></li>
+                        <li><a href="{{ url_for('search') }}">Search/Edit</a></li>
+                        <li><a href="{{ url_for('index') }}">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
         </nav>
-      </header>
+    </header>
 
     <main class="form-container">
         <h2>Add Patient</h2>
-        <form action="{{ url_for('add') }}" method="POST">
+        <form action="{{ url_for('add') }}" method="POST" id="add-patient-form">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" id="name" name="name" required placeholder="Enter name">
@@ -79,9 +78,17 @@
             <button type="submit">Add Patient</button>
             <button type="reset" class="reset-button">Reset</button>
         </form>
-
-        
     </main>
+
+      <!-- Modal -->
+      <div id="modal" class="modal">
+          <div class="modal-content">
+              <h3>Patient Added Successfully</h3>
+              <p>What would you like to do next?</p>
+              <button id="go-to-search">Go to Search</button>
+              <button id="add-another">Add Another</button>
+          </div>
+      </div>
 
     <script>
         document.querySelector('.add-button').addEventListener('click', function() {
@@ -108,54 +115,59 @@
             }
         });
 
-        // แสดงหรือซ่อนเมนูเมื่อคลิกที่โปรไฟล์
-      document.getElementById('profile-icon').addEventListener('click', function(event) {
-        event.stopPropagation(); // ป้องกันไม่ให้คลิกในโปรไฟล์ทำให้หน้าต่างปิด
-        const dropdownMenu = document.querySelector('.dropdown-menu');
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        // Show modal after form submission
+        document.querySelector('#add-patient-form').addEventListener('submit', function(event) {
+          event.preventDefault(); // ป้องกันไม่ให้ฟอร์มถูกส่งโดยตรง
+      
+          const formData = new FormData(this);
+      
+          fetch('{{ url_for('add') }}', {
+              method: 'POST',
+              body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  document.getElementById('modal').style.display = 'block'; // แสดง Modal
+              } else {
+                  alert("Error adding patient!");
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert("There was an error processing your request.");
+          });
       });
 
-        // ปิดเมนูเมื่อคลิกนอกโปรไฟล์
-      document.addEventListener('click', function() {
-        const dropdownMenu = document.querySelector('.dropdown-menu');
-        dropdownMenu.style.display = 'none';
-      });
-
-
-      document.querySelector('form').addEventListener('submit', function(event) {
-        event.preventDefault(); // ป้องกันการส่งฟอร์ม
-    
-        // สร้าง notification box
-        const notificationBox = document.createElement('div');
-        notificationBox.classList.add('notification');
-        notificationBox.innerHTML = `<p>เพิ่มข้อมูลผู้ป่วยสำเร็จ!</p>`;
-        document.body.appendChild(notificationBox);
-    
-        // แสดงกล่องข้อความ
-        notificationBox.style.display = 'block';
-    
-        // ตั้งเวลาให้ notification ปิดอัตโนมัติใน 3 วินาที
-        setTimeout(function() {
-            notificationBox.style.display = 'none';
-            document.body.removeChild(notificationBox); // ลบกล่องข้อความหลังจากปิด
-        }, 3000);
-    
-        // ทำการส่งข้อมูลไปยัง server (อาจใช้ AJAX หรือ Fetch API ในการส่งข้อมูล)
-        const formData = new FormData(this); // รวบรวมข้อมูลจากฟอร์ม
-    
-        fetch('{{ url_for('add') }}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json()) // แปลงข้อมูลที่ส่งกลับ
-        .then(data => {
-            console.log(data); // ทำงานกับข้อมูลที่ส่งกลับ (ถ้ามี)
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        // Handle modal button clicks
+        document.getElementById('go-to-search').addEventListener('click', function() {
+            window.location.href = '{{ url_for('search') }}';  // Redirect to search page
         });
-    });
-    
+
+        document.getElementById('add-another').addEventListener('click', function() {
+            document.getElementById('modal').style.display = 'none';
+            document.querySelector('#add-patient-form').reset();  // Reset form for adding another patient
+        });
+
+        // Hide modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('modal')) {
+                document.getElementById('modal').style.display = 'none';
+            }
+        };
+
+        // แสดงหรือซ่อนเมนูเมื่อคลิกที่โปรไฟล์
+        document.getElementById('profile-icon').addEventListener('click', function(event) {
+          event.stopPropagation(); // ป้องกันไม่ให้คลิกในโปรไฟล์ทำให้หน้าต่างปิด
+          const dropdownMenu = document.querySelector('.dropdown-menu');
+          dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // ปิดเมนูเมื่อคลิกนอกโปรไฟล์
+      document.addEventListener('click', function() {
+          const dropdownMenu = document.querySelector('.dropdown-menu');
+          dropdownMenu.style.display = 'none';
+      });
     </script>
 </body>
 </html>
