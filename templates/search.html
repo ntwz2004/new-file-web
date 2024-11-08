@@ -270,7 +270,7 @@
             // Get all diagnosis and ICD-10 values
             const diagnosisValues = Array.from(document.querySelectorAll('input[name="diagnosis[]"]')).map(input => input.value).join(',');
             const icd10Values = Array.from(document.querySelectorAll('input[name="icd10[]"]')).map(input => input.value).join(',');
-
+        
             const updateData = {
                 name: document.getElementById("update-name").value,
                 surname: document.getElementById("update-surname").value,
@@ -280,7 +280,7 @@
                 visit_type: "Follow up",
                 date: document.getElementById("update-date").value
             };
-
+        
             fetch(`/add_visit/${patientId}`, {
                 method: 'POST',
                 headers: {
@@ -292,7 +292,10 @@
             .then(result => {
                 if (result.success) {
                     alert("New visit added successfully");
-                    // Reset form fields
+                    
+                    // Reset the form
+                    resetUpdateForm();
+                    
                     closeUpdateModal();
                     performSearch();  // Update search results if needed
                 } else {
@@ -301,12 +304,24 @@
             })
             .catch(error => console.error('Error:', error));
         }
-
         
-        // Add this new function to reset the form
         function resetUpdateForm() {
-            document.getElementById("update-diagnosis").value = "";
-            document.getElementById("update-icd10").value = "";
+            // Get the diagnosis section
+            const diagnosisSection = document.getElementById('diagnosis-section');
+            
+            // Remove all diagnosis rows except the first one
+            const diagnosisRows = diagnosisSection.getElementsByClassName('diagnosis-icd10-pair');
+            
+            // Clear the first row's inputs
+            diagnosisRows[0].querySelector('input[name="diagnosis[]"]').value = '';
+            diagnosisRows[0].querySelector('input[name="icd10[]"]').value = '';
+            
+            // Remove any additional rows
+            while (diagnosisRows.length > 1) {
+                diagnosisSection.removeChild(diagnosisRows[diagnosisRows.length - 1]);
+            }
+            
+            // Reset the date to today
             document.getElementById("update-date").value = new Date().toISOString().split('T')[0];
         }
 
