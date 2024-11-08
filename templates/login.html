@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
     <title>Login</title>
+    
   </head>
   <body>
+    <!-- Popup overlay และ popup -->
+    <div id="popup-overlay" class="popup-overlay"></div>
+    <div id="popup" class="popup">
+      <p id="popup-message"></p>
+      <button onclick="closePopup()">ปิด</button>
+    </div>
+
     <div class="row">
       <div class="col-md-6 mx-auto p-0">
         <div class="card">
@@ -17,7 +25,7 @@
               <div class="login-space">
                 
                 <!-- ฟอร์มล็อกอิน -->
-                <form action="{{ url_for('login') }}" method="post">
+                <form id="loginForm" action="{{ url_for('login') }}" method="post">
                   <div class="login">
                     <div class="group">
                       <label for="user" class="label">Username</label>
@@ -38,7 +46,7 @@
                 </form>
                 
                 <!-- ฟอร์มสมัคร -->
-                <form action="{{ url_for('reg') }}" method="post">
+                <form id="regForm" action="{{ url_for('reg') }}" method="post">
                   <div class="sign-up-form">
                     <div class="group">
                       <label for="user" class="label">Username</label>
@@ -67,5 +75,70 @@
         </div>
       </div>
     </div>
+
+    <script>
+      // Function เพื่อแสดง popup
+      function showPopup(message) {
+        document.getElementById('popup-message').textContent = message;
+        document.getElementById('popup-overlay').style.display = 'block';
+        document.getElementById('popup').style.display = 'block';
+      }
+
+      // Function เพื่อปิด popup
+      function closePopup() {
+        document.getElementById('popup-overlay').style.display = 'none';
+        document.getElementById('popup').style.display = 'none';
+      }
+
+      // จัดการฟอร์มล็อกอิน
+      document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        fetch('{{ url_for("login") }}', {
+          method: 'POST',
+          body: new FormData(this)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success === false) {
+            // แสดง popup หากการเข้าสู่ระบบล้มเหลว
+            showPopup(data.message);
+          } else {
+            // หากเข้าสู่ระบบสำเร็จ ให้เปลี่ยนหน้า
+            window.location.href = '{{ url_for("main") }}';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      });
+
+      // จัดการฟอร์มสมัคร
+      document.getElementById('regForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        fetch('{{ url_for("reg") }}', {
+          method: 'POST',
+          body: new FormData(this)
+        })
+        .then(response => {
+          if (response.status === 400) {
+            return response.json().then(data => {
+              // แสดง popup หากมีปัญหากับการสมัคร
+              showPopup(data.message);
+              throw new Error(data.message);
+            });
+          }
+          return response;
+        })
+        .then(response => {
+          // หากสมัครสำเร็จ ให้เปลี่ยนหน้า
+          window.location.href = '{{ url_for("login") }}';
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      });
+    </script>
   </body>
 </html>
