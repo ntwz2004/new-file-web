@@ -113,6 +113,49 @@ button:hover {
     
 }
 
+/* สไตล์สำหรับปุ่ม + */
+.add-diagnosis-btn {
+    background-color: #1abc9c !important; /* สีพื้นหลังปุ่ม + */
+    color: white !important; /* สีตัวอักษรปุ่ม + */
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s !important;
+    width: 30px !important; /* ขนาดปุ่ม */
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.add-diagnosis-btn:hover {
+    background-color: #16a085 !important; /* สีเมื่อ hover สำหรับปุ่ม + */
+}
+
+/* สไตล์สำหรับปุ่ม - */
+.remove-diagnosis-btn {
+    background-color: #e74c3c !important; /* สีพื้นหลังปุ่ม - */
+    color: white !important; /* สีตัวอักษรปุ่ม - */
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s !important;
+    width: 30px !important; /* ขนาดปุ่ม */
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-left: 5px !important;
+}
+
+.remove-diagnosis-btn:hover {
+    background-color: #c0392b !important; /* สีเมื่อ hover สำหรับปุ่ม - */
+}
+
 /* Close Button */
 .close-button {
     position: absolute;

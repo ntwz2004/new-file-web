@@ -169,23 +169,21 @@
                         <input type="text" id="update-dental-number" readonly>
                     </div>
 
-                    <!-- Editable fields for diagnosis and ICD-10 -->
-                    <div id="diagnosis-section" style="display: flex; flex-wrap: wrap; gap: 10px;">
-                        <div class="diagnosis-group" style="flex: 1;">
-                            <label for="update-diagnosis">New Diagnosis:</label>
-                            <input type="text" id="update-diagnosis" name="diagnosis[]" required>
-                        </div>
-                        <div class="icd10-group" style="flex: 1;">
-                            <label for="update-icd10">New ICD-10:</label>
-                            <input type="text" id="update-icd10" name="icd10[]" required>
+                   <!-- ส่วน Diagnosis และ ICD-10 พร้อมปุ่ม + ขนาดเล็ก -->
+                    <div id="diagnosis-section" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="diagnosis-icd10-pair" style="display: flex; gap: 10px; align-items: center;">
+                            <div style="flex: 1;">
+                                <label for="update-diagnosis">New Diagnosis:</label>
+                                <input type="text" id="update-diagnosis" name="diagnosis[]" required>
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="update-icd10">New ICD-10:</label>
+                                <input type="text" id="update-icd10" name="icd10[]" required>
+                            </div>
+                            <!-- ปุ่ม + ขนาดเล็ก -->
+                            <button type="button" id="add-diagnosis-btn" class="add-diagnosis-btn" aria-label="Add diagnosis">+</button>
                         </div>
                     </div>
-                    
-                    <!-- Add button for adding more diagnosis and ICD-10 -->
-                    <div style="flex: 1; display: flex; justify-content: flex-end;">
-                        <button type="button" id="add-diagnosis-btn" class="add-button" aria-label="Add diagnosis">+</button>
-                    </div>
-
                     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                         <div style="flex: 1;">
                             <label for="update-date">Date:</label>
@@ -232,31 +230,37 @@
                 });
         }
         
-        // Function to add new diagnosis and ICD-10 fields when '+' button is clicked
         document.getElementById('add-diagnosis-btn').addEventListener('click', function() {
             const diagnosisSection = document.getElementById('diagnosis-section');
-            
-            // Create new diagnosis and ICD-10 input fields
-            const newDiagnosisGroup = document.createElement('div');
-            newDiagnosisGroup.classList.add('diagnosis-group');
-            newDiagnosisGroup.style.flex = "1";
-            newDiagnosisGroup.innerHTML = `
-                <label for="update-diagnosis">New Diagnosis:</label>
-                <input type="text" name="diagnosis[]" required>
+        
+            // สร้างกลุ่มฟิลด์ Diagnosis และ ICD-10 ใหม่
+            const newDiagnosisIcdPair = document.createElement('div');
+            newDiagnosisIcdPair.classList.add('diagnosis-icd10-pair');
+            newDiagnosisIcdPair.style.display = 'flex';
+            newDiagnosisIcdPair.style.gap = '10px';
+            newDiagnosisIcdPair.style.alignItems = 'center';
+            newDiagnosisIcdPair.innerHTML = `
+                <div style="flex: 1;">
+                    <label>New Diagnosis:</label>
+                    <input type="text" name="diagnosis[]" required>
+                </div>
+                <div style="flex: 1;">
+                    <label>New ICD-10:</label>
+                    <input type="text" name="icd10[]" required>
+                </div>
+                <!-- ปุ่ม - สำหรับลบฟิลด์ -->
+                <button type="button" class="remove-diagnosis-btn" onclick="removeDiagnosisField(this)">-</button>
             `;
-            
-            const newIcd10Group = document.createElement('div');
-            newIcd10Group.classList.add('icd10-group');
-            newIcd10Group.style.flex = "1";
-            newIcd10Group.innerHTML = `
-                <label for="update-icd10">New ICD-10:</label>
-                <input type="text" name="icd10[]" required>
-            `;
-
-            // Append new fields to the diagnosis section
-            diagnosisSection.appendChild(newDiagnosisGroup);
-            diagnosisSection.appendChild(newIcd10Group);
+        
+            // เพิ่มกลุ่มฟิลด์ใหม่ลงใน diagnosis-section
+            diagnosisSection.appendChild(newDiagnosisIcdPair);
         });
+
+        // ฟังก์ชันสำหรับลบฟิลด์ Diagnosis และ ICD-10
+        function removeDiagnosisField(button) {
+            const diagnosisPair = button.parentElement;
+            diagnosisPair.remove();
+        }
 
         
         // Function to save updated visit data
@@ -289,7 +293,6 @@
                 if (result.success) {
                     alert("New visit added successfully");
                     // Reset form fields
-                    resetUpdateForm();
                     closeUpdateModal();
                     performSearch();  // Update search results if needed
                 } else {
@@ -492,6 +495,7 @@
             })
             .catch(error => console.error('Error:', error));
         }
+
         function deletePatient() {
             if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลผู้ป่วยนี้?")) {
                 fetch(`/delete_patient/${currentPatient.id}`, {
@@ -510,6 +514,7 @@
                 .catch(error => console.error('Error:', error));
             }
         }
+
         </script>
     </body>
 </html>
