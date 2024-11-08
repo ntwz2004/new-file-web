@@ -214,6 +214,9 @@
 
         function closeUpdateModal() {
             document.getElementById("updateModal").style.display = "none";
+            
+            // Reset the form when closing
+            resetUpdateForm();
         }
         
         function showUpdate(patientId) {
