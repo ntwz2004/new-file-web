@@ -59,8 +59,8 @@ def login():
         password = request.form['password']
         user = User.query.filter((User.email == email_or_username) | (User.username == email_or_username)).first()
         if user and user.check_password(password):
-            session['username'] = user.username  # เก็บ username ใน session
-            return redirect(url_for('main'))
+            session['username'] = user.username
+            return jsonify(success=True , message="เข้าสู่ระบบสำเร็จ")  # ส่งข้อความสำเร็จกลับไป
         else:
             return jsonify(success=False, message="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง.")
     return render_template('login.html')
@@ -81,7 +81,7 @@ def reg():
         password = request.form.get('password')
         username = request.form.get('username')
 
-        existing_user = User.query.filter((User.email == email) | (User.username == username)).first()
+        existing_user = User.query.filter((User .email == email) | (User .username == username)).first()
         if existing_user:
             return {"success": False, "message": "อีเมลหรือชื่อผู้ใช้นี้มีอยู่แล้ว."}, 400
 
@@ -90,7 +90,7 @@ def reg():
         db.session.add(new_user)
         db.session.commit()
         
-        return redirect(url_for('login'))
+        return jsonify(success=True, message="สมัครสมาชิกสำเร็จ")  # ส่งข้อความสำเร็จกลับไป
     return render_template('reg.html')
 
 @app.route('/main')
