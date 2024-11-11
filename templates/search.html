@@ -40,9 +40,9 @@
         <main>
         <section class="filter-section">
             <select id="filter-type" onchange="updatePlaceholder()">
+                <option value="dental_number">Dental Number</option>
                 <option value="name">Name</option>
                 <option value="surname">Surname</option>
-                <option value="dental_number">Dental Number</option>
                 <option value="diagnosis">Diagnosis</option>
                 <option value="icd_10">ICD-10</option>
                 <option value="type_of_visit">Type of Visit</option>
@@ -109,15 +109,8 @@
                         </div>
                     </div>
                 
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label for="edit-diagnosis">Diagnosis:</label>
-                            <input type="text" id="edit-diagnosis" name="diagnosis">
-                        </div>
-                        <div style="flex: 1;">
-                            <label for="edit-icd10">ICD-10:</label>
-                            <input type="text" id="edit-icd10" name="icd10">
-                        </div>
+                    <div id="diagnosis-edit-section" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- This will be dynamically populated with existing diagnoses -->
                     </div>
                 
                     <div class="flex-container">
@@ -141,7 +134,7 @@
                             <input type="text" id="created-by" name="created_by" readonly>
                         </div>
                     </div>
-                
+                    
                     <button type="button" onclick="saveChanges()">Save</button>
                     <button type="button" class="delete-button" style="background-color: red; color: white;" onclick="deletePatient()">Delete</button>
                 </form>        
@@ -397,9 +390,9 @@
                     data.forEach(item => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
+                            <td>${item.dental_number}</td>
                             <td>${item.name}</td>
                             <td>${item.surname}</td>
-                            <td>${item.dental_number}</td>
                             <td>${item.diagnosis}</td>
                             <td>${item.icd_10}</td>
                             <td>${item.type_of_visit}</td>
@@ -473,16 +466,49 @@
                     document.getElementById("edit-name").value = data.name;
                     document.getElementById("edit-surname").value = data.surname;
                     document.getElementById("edit-dental-number").value = data.dental_number;
-                    document.getElementById("edit-diagnosis").value = data.diagnosis;
-                    document.getElementById("edit-icd10").value = data.icd10;
                     document.getElementById("edit-visit-type").value = data.type_of_visit;
                     document.getElementById("edit-date").value = data.date;
                     document.getElementById("created-by").value = data.created_by;
+                    
+                    // Populate diagnoses and ICD-10 codes
+                    const diagnosisSection = document.getElementById("diagnosis-edit-section");
+                    diagnosisSection.innerHTML = ''; // Clear existing rows
+                    
+                    // Split diagnoses and ICD-10 codes
+                    const diagnoses = data.diagnosis ? data.diagnosis.split(',') : [''];
+                    const icd10Codes = data.icd10 ? data.icd10.split(',') : [''];
+                    
+                    // Create rows for diagnoses
+                    diagnoses.forEach((diagnosis, index) => {
+                        const row = document.createElement('div');
+                        row.classList.add('diagnosis-icd10-pair');
+                        row.style.display = 'flex';
+                        row.style.gap = '10px';
+                        row.style.alignItems = 'center';
+                        row.innerHTML = `
+                            <div style="flex: 1;">
+                                <label>Diagnosis:</label>
+                                <input type="text" name="edit-diagnosis[]" value="${diagnosis.trim()}" required>
+                            </div>
+                            <div style="flex: 1;">
+                                <label>ICD-10:</label>
+                                <input type="text" name="edit-icd10[]" value="${icd10Codes[index] ? icd10Codes[index].trim() : ''}" required>
+                            </div>
+                        `;
+                        diagnosisSection.appendChild(row);
+                    });
+                    
+                    // Remove the add diagnosis button
+                    const addDiagnosisBtn = document.getElementById('add-edit-diagnosis-btn');
+                    if (addDiagnosisBtn) {
+                        addDiagnosisBtn.style.display = 'none';
+                    }
                     
                     document.getElementById("editModal").style.display = "flex";
                     currentPatient = data;
                 });
         }
+        
         
         function closeModal() {
             document.getElementById("editModal").style.display = "none";
@@ -490,13 +516,22 @@
         }
         
         function saveChanges() {
+            // Collect diagnoses and ICD-10 codes
+            const diagnoses = Array.from(document.querySelectorAll('input[name="edit-diagnosis[]"]'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+            
+            const icd10Codes = Array.from(document.querySelectorAll('input[name="edit-icd10[]"]'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+        
             // ดึงข้อมูลที่แก้ไข
             const updatedData = {
                 name: document.getElementById("edit-name").value,
                 surname: document.getElementById("edit-surname").value,
                 dental_number: document.getElementById("edit-dental-number").value,
-                diagnosis: document.getElementById("edit-diagnosis").value,
-                icd10: document.getElementById("edit-icd10").value,
+                diagnosis: diagnoses.join(','),
+                icd10: icd10Codes.join(','),
                 type_of_visit: document.getElementById("edit-visit-type").value,
                 date: document.getElementById("edit-date").value,
             };
@@ -512,16 +547,15 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    alert("ข้อมูลได้รับการแก้ไขแล้ว");
+                    alert("The information has been updated");
                     closeModal();
                     performSearch(); // อัปเดตผลลัพธ์การค้นหา
                 } else {
-                    alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+                    alert("An error occurred while saving the data");
                 }
             })
             .catch(error => console.error('Error:', error));
         }
-
         function deletePatient() {
             if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลผู้ป่วยนี้?")) {
                 fetch(`/delete_patient/${currentPatient.id}`, {
