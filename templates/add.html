@@ -83,6 +83,7 @@
       <!-- Modal -->
       <div id="modal" class="modal">
           <div class="modal-content">
+              <span class="close-button" onclick="closeModal()">&times;</span> <!-- ปุ่มกากบาท -->
               <h3>Patient Added Successfully</h3>
               <button id="go-to-search" >Go to Search</button>
               <button id="add-another">Close</button>
@@ -90,6 +91,13 @@
       </div>
 
     <script>
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.querySelector('#add-patient-form').reset(); // รีเซ็ตฟอร์ม
+        }
+        
+
         document.querySelector('.add-button').addEventListener('click', function() {
             const diagnosisSection = document.getElementById('diagnosis-section');
             const newDiagnosisGroup = document.createElement('div');
