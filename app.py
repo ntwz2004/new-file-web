@@ -60,9 +60,9 @@ def login():
         user = User.query.filter((User.email == email_or_username) | (User.username == email_or_username)).first()
         if user and user.check_password(password):
             session['username'] = user.username
-            return jsonify(success=True , message="เข้าสู่ระบบสำเร็จ")  # ส่งข้อความสำเร็จกลับไป
+            return jsonify(success=True , message="Login successful")  # ส่งข้อความสำเร็จกลับไป
         else:
-            return jsonify(success=False, message="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง.")
+            return jsonify(success=False, message="The username or password is incorrect")
     return render_template('login.html')
 
 @app.route('/logout')
@@ -83,14 +83,14 @@ def reg():
 
         existing_user = User.query.filter((User .email == email) | (User .username == username)).first()
         if existing_user:
-            return {"success": False, "message": "อีเมลหรือชื่อผู้ใช้นี้มีอยู่แล้ว."}, 400
+            return {"success": False, "message": "This email or username already exists"}, 400
 
         new_user = User(email=email, username=username)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
         
-        return jsonify(success=True, message="สมัครสมาชิกสำเร็จ")  # ส่งข้อความสำเร็จกลับไป
+        return jsonify(success=True, message="Successfully applied for membership")  # ส่งข้อความสำเร็จกลับไป
     return render_template('reg.html')
 
 @app.route('/main')
@@ -229,8 +229,8 @@ def delete_patient(patient_id):
     if patient:
         db.session.delete(patient)
         db.session.commit()
-        return jsonify(success=True, message="ลบข้อมูลเรียบร้อยแล้ว")
-    return jsonify(success=False, message="ไม่พบข้อมูลที่ต้องการลบ")
+        return jsonify(success=True, message="Data has been successfully deleted")
+    return jsonify(success=False, message="The data you want to delete was not found")
     
 @app.route('/add_visit/<int:patient_id>', methods=['POST'])
 def add_visit(patient_id):
