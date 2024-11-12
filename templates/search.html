@@ -29,6 +29,7 @@
                     <li><a href="{{ url_for('main') }}">Home</a></li>
                     <li><a href="{{ url_for('add') }}">Add</a></li>
                     <li><a href="{{ url_for('search') }}">Search/Edit</a></li>
+                    <li><a href="#" onclick="exportCurrentSearchResults()">Export to Excel</a></li>
                     <li><a href="{{ url_for('index') }}">Logout</a></li>
                 </ul>
                 </li>
@@ -366,29 +367,34 @@
             }
         }
 
-        function performSearch() {
-            const filterType = document.getElementById("filter-type").value;
-            const filterValue = filterType === "type_of_visit" ? 
-                document.getElementById("visit-type-select").value : 
-                document.getElementById("filter-input").value;
-            const table = document.getElementById("result-table");
-            const tableBody = document.getElementById("table-body");
-        
-            fetch('/search_results', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filterType, filterValue })
-            })
-            .then(response => response.json())
-            .then(data => {
-                tableBody.innerHTML = "";
-                if (data.length > 0) {
-                    table.style.display = "table";
-                    data.forEach(item => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
+        let currentSearchData = []; // Global variable to store current search results
+
+function performSearch() {
+    const filterType = document.getElementById("filter-type").value;
+    const filterValue = filterType === "type_of_visit" ? 
+        document.getElementById("visit-type-select").value : 
+        document.getElementById("filter-input").value;
+    const table = document.getElementById("result-table");
+    const tableBody = document.getElementById("table-body");
+
+    fetch('/search_results', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filterType, filterValue })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Store the current search results globally
+        currentSearchData = data;
+
+        tableBody.innerHTML = "";
+        if (data.length > 0) {
+            table.style.display = "table";
+            data.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
                             <td>${item.dental_number}</td>
                             <td>${item.name}</td>
                             <td>${item.surname}</td>
@@ -405,16 +411,67 @@
                                 </button>
                             </td
 
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    table.style.display = "none"; // ซ่อนตารางหากไม่มีข้อมูล
-                    showNoResultsModal(); // แสดง modal เมื่อไม่พบข้อมูล
-                }
-            })
-            .catch(error => console.error('Error:', error));
+                            `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                table.style.display = "none";
+                showNoResultsModal();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    function exportCurrentSearchResults() {
+        // Check if there are any search results
+        if (currentSearchData.length === 0) {
+            alert("No data to export. Please perform a search first.");
+            return;
         }
+    
+        fetch('/export_to_excel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(currentSearchData)
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            // Create a link to download the file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'patient_data.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("An error occurred while exporting data.");
+        });
+    }
+    function exportToExcel(data) {
+        fetch('/export_to_excel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            // Create a link to download the file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'patient_data.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(error => console.error('Error:', error));
+    }
         
         function showNoResultsModal() {
             const modal = document.getElementById("noResultsModal");

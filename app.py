@@ -1,8 +1,11 @@
-from flask import Flask, jsonify, render_template, request, redirect, session, url_for, flash
+from flask import Flask,send_file, jsonify, render_template, request, redirect, session, url_for, flash
 from flask_login import current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from io import BytesIO
 
 app = Flask(__name__)
 
@@ -259,6 +262,97 @@ def add_visit(patient_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": str(e)})
+    
+def clean_multiline_text(text):
+    # Ensure text is a string and replace HTML line breaks with newline
+    if text is None:
+        return ""
+    return str(text).replace('<br>', '\n').strip()
+
+@app.route('/export_to_excel', methods=['POST'])
+def export_to_excel():
+    data = request.get_json()
+    
+    # Create a new workbook and select the active sheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Patient Data"
+    
+    # Define styles
+    header_font = Font(bold=True, color="000000")
+    header_fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    thin_border = Border(
+        left=Side(style='thin'), 
+        right=Side(style='thin'), 
+        top=Side(style='thin'), 
+        bottom=Side(style='thin')
+    )
+    
+    # Add headers
+    headers = [
+        "Dental Number", "Name", "Surname", "Diagnosis", 
+        "ICD-10", "Type of Visit", "Date"
+    ]
+    
+    # Write headers with styling
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # Adjust column width
+    column_widths = [15, 15, 15, 25, 25, 15, 12]  # Increased ICD-10 column width
+    for col, width in enumerate(column_widths, 1):
+        ws.column_dimensions[chr(64 + col)].width = width
+    
+    # Add data rows
+    for row_num, item in enumerate(data, 2):
+        # Clean all text fields
+        dental_number = clean_multiline_text(item.get('dental_number', ''))
+        name = clean_multiline_text(item.get('name', ''))
+        surname = clean_multiline_text(item.get('surname', ''))
+        diagnosis = clean_multiline_text(item.get('diagnosis', ''))
+        icd_10 = clean_multiline_text(item.get('icd_10', ''))
+        type_of_visit = clean_multiline_text(item.get('type_of_visit', ''))
+        date = clean_multiline_text(item.get('date', ''))
+        
+        # Write data to cells
+        ws.cell(row=row_num, column=1, value=dental_number)
+        ws.cell(row=row_num, column=2, value=name)
+        ws.cell(row=row_num, column=3, value=surname)
+        ws.cell(row=row_num, column=4, value=diagnosis)
+        ws.cell(row=row_num, column=5, value=icd_10)
+        ws.cell(row=row_num, column=6, value=type_of_visit)
+        ws.cell(row=row_num, column=7, value=date)
+        
+        # Apply styling to each cell
+        for col in range(1, 8):
+            cell = ws.cell(row=row_num, column=col)
+            cell.border = thin_border
+            cell.alignment = Alignment(
+                horizontal='left', 
+                vertical='center', 
+                wrap_text=True
+            )
+    
+    # Enable auto-filtering
+    ws.auto_filter.ref = ws.dimensions
+    
+    # Save to a BytesIO object
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+    
+    # Send the file
+    return send_file(
+        excel_file, 
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True, 
+        download_name='patient_data.xlsx'
+    ) 
 
 # สร้างตารางฐานข้อมูลเมื่อเริ่มต้น
 with app.app_context():
